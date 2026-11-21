@@ -21,10 +21,17 @@
 | 观点验证 | `prompts/03-观点验证.md` | 新观点一律 [待验证] + 检验方式 + 回访日期，到期拿数据裁决 |
 | 日清流程 | `prompts/01-启动会话.md` | 每次会话固定五步，最后一句话回报 |
 
-## 3 天接入
+## 安装方式（三选一，都免费）
 
-> 完全没接触过 Obsidian 或 AI？先看 **[小白指南](docs/小白指南.md)**——从安装软件开始教，不写代码，30 分钟跑通。
-> 懒人通道：把 **[工作模式提示词](prompts/00-工作模式.md)** 全文粘贴给任意 AI，让它带你安装；或直接 [下载 ZIP 打包](https://github.com/Jingangster/personal-ai-os/archive/refs/heads/main.zip)。
+| 方式 | 适合谁 | 步骤 | 用时 |
+| --- | --- | --- | --- |
+| **① 一键安装（推荐）** | Windows | [下载 ZIP](https://github.com/Jingangster/personal-ai-os/archive/refs/heads/main.zip) → 解压 → 双击 `install.bat` → 选编号 → Obsidian 自动打开 | ~2 分钟 |
+| **② AI 带装** | 已在用 AI | 把 [工作模式提示词](prompts/00-工作模式.md) 全文粘贴给任意 AI，它带你装完 | 2–10 分钟 |
+| **③ 手动** | Mac / Linux | 下载 ZIP 解压，把 `vault/` 三个文件夹拖进 Obsidian 库；或终端跑 `bash install.sh` | ~5 分钟 |
+
+> 完全没接触过 Obsidian 或 AI？先看 **[小白指南](docs/小白指南.md)**——从装软件开始教，不写代码，30 分钟跑通。
+
+## 3 天接入
 
 **Day 1 · 安装**
 把 `vault/` 下的模板复制进你的 Obsidian 库（保持目录名），填 `90 AI/00 从这里开始-模板.md` 的身份页——只填三行：你是谁、主线目标、底线。
@@ -58,7 +65,8 @@ personal-ai-os/
 │   ├── 设计理念.md              为什么这样设计（含学习科学依据）
 │   ├── 宣传文案包.md            小红书 / 知乎 / B站 现成文案
 │   └── FAQ.md
-└── LICENSE
+├── install.bat / install.ps1    Windows：解压后双击，一键安装
+└── install.sh                   macOS / Linux：bash install.sh
 ```
 
 ## 设计原则
@@ -73,7 +81,7 @@ personal-ai-os/
 
 - [ ] 英文版 README
 - [ ] 真实使用截图
-- [ ] 一键安装脚本（自动建目录）
+- [ ] Obsidian 社区插件版安装器
 
 ## License
 
