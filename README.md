@@ -48,6 +48,9 @@
 
 ```
 personal-ai-os/
+├── 新手必做.md                  ← 解压后先看这个：3 步 5 分钟
+├── install.bat / install.ps1    Windows 一键安装（解压后双击）
+├── install.sh                   macOS / Linux：bash install.sh
 ├── vault/                      ← 复制进你的 Obsidian 库
 │   ├── 00 首页/
 │   │   └── 首页-模板.md         唯一操作界面：今天做什么
@@ -67,8 +70,7 @@ personal-ai-os/
 │   ├── 设计理念.md              为什么这样设计（含学习科学依据）
 │   ├── 宣传文案包.md            小红书 / 知乎 / B站 现成文案
 │   └── FAQ.md
-├── install.bat / install.ps1    Windows：解压后双击，一键安装
-└── install.sh                   macOS / Linux：bash install.sh
+└── LICENSE
 ```
 
 ## 设计原则

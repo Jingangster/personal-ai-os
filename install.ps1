@@ -152,6 +152,11 @@ if (Test-Path $PromptsSrc) {
   Copy-Item $PromptsSrc (Join-Path $VaultPath "prompts") -Recurse -Force
   Write-Ok "prompts（AI 提示词）也放进了库里"
 }
+$guideFile = Join-Path $Root "新手必做.md"
+if (Test-Path $guideFile) {
+  Copy-Item $guideFile $VaultPath -Force
+  Write-Ok "新手必做.md 已放进库里"
+}
 
 # ---------- 4. 下一步 ----------
 Write-Host ""
