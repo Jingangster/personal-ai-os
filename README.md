@@ -48,7 +48,7 @@
 
 ```
 personal-ai-os/
-├── 新手必做.md                  ← 解压后先看这个：3 步 5 分钟
+├── 新手必做.md                  ← 一句话：双击安装，装完 Ctrl+V 发送
 ├── install.bat / install.ps1    Windows 一键安装（解压后双击）
 ├── install.sh                   macOS / Linux：bash install.sh
 ├── vault/                      ← 复制进你的 Obsidian 库

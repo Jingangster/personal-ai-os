@@ -48,12 +48,23 @@ if [ -f "$ROOT/新手必做.md" ]; then
 fi
 echo "  [OK] 模板已复制到: $VP"
 
-# ---------- 4. 下一步 ----------
+# ---------- 4. 下一步：剪贴板就绪 + 自动打开 ----------
+PROMPT_FILE="$VP/prompts/00-工作模式.md"
+CLIP="no"
+if [ -f "$PROMPT_FILE" ] && command -v pbcopy >/dev/null 2>&1; then
+  pbcopy < "$PROMPT_FILE" && CLIP="yes"
+fi
 echo "================ 安装完成 ================"
-echo " 下一步："
-echo "  1. 打开 Obsidian → 打开文件夹作为库 → 选 $VP"
-echo "  2. 把 prompts/00-工作模式.md 全文粘贴给任意 AI，让它接管"
+if [ "$CLIP" = "yes" ]; then
+  echo " 提示词已放进剪贴板。"
+  echo " 下一步：打开自动弹出的 AI 网页，Cmd+V 粘贴，发送。完事。"
+else
+  echo " 下一步：打开 $PROMPT_FILE 全文复制，发给任意 AI。"
+fi
 echo "=========================================="
 if command -v open >/dev/null 2>&1; then
   open "$VP" 2>/dev/null || true
+  open "https://chat.deepseek.com" 2>/dev/null || true
+elif command -v xdg-open >/dev/null 2>&1; then
+  xdg-open "https://chat.deepseek.com" 2>/dev/null || true
 fi

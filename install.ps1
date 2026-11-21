@@ -158,18 +158,28 @@ if (Test-Path $guideFile) {
   Write-Ok "新手必做.md 已放进库里"
 }
 
-# ---------- 4. 下一步 ----------
+# ---------- 4. 下一步：剪贴板就绪 + 自动打开 ----------
+$promptFile = Join-Path $VaultPath "prompts\00-工作模式.md"
+$clipOK = $false
+if (-not $NoOpen -and (Test-Path $promptFile)) {
+  try { Get-Content -Raw -Encoding UTF8 $promptFile | Set-Clipboard; $clipOK = $true } catch { }
+}
+
 Write-Host ""
 Write-Host "================ 安装完成 ================" -ForegroundColor Green
-Write-Host " 下一步（只剩一件事）："
-Write-Host "  打开 Obsidian 里的 prompts/00-工作模式.md，"
-Write-Host "  全文复制，粘贴给任意 AI（豆包/DeepSeek 都行），发送。"
-Write-Host "  它会接管剩下的一切。"
+if ($clipOK) {
+  Write-Host " 工作模式提示词已放进你的剪贴板。" -ForegroundColor Green
+  Write-Host " 下一步：在自动打开的 AI 网页里按 Ctrl+V，发送。完事。"
+  Write-Host " （没有 AI 账号？DeepSeek / Kimi / 豆包 / ChatGPT 任选一个注册即可）"
+} else {
+  Write-Host " 下一步：打开 prompts/00-工作模式.md，全文复制，"
+  Write-Host " 粘贴给任意 AI（豆包/DeepSeek 都行），发送。"
+}
 Write-Host "=========================================="
 
 if (-not $NoOpen) {
   $name = Split-Path $VaultPath -Leaf
   try { Start-Process ("obsidian://open?vault=" + [uri]::EscapeDataString($name)) } catch { }
-  $promptFile = Join-Path $VaultPath "prompts\00-工作模式.md"
-  if (Test-Path $promptFile) { Start-Process notepad.exe $promptFile }
+  try { Start-Process "https://chat.deepseek.com" } catch { }
+  if (-not $clipOK -and (Test-Path $promptFile)) { Start-Process notepad.exe $promptFile }
 }
