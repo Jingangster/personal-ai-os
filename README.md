@@ -25,9 +25,11 @@
 
 | 方式 | 适合谁 | 步骤 | 用时 |
 | --- | --- | --- | --- |
-| **① 一键安装（推荐）** | Windows | [下载 ZIP](https://github.com/Jingangster/personal-ai-os/archive/refs/heads/main.zip) → 解压 → 双击 `install.bat` → 选编号 → Obsidian 自动打开 | ~2 分钟 |
+| **① 一键安装（推荐）** | Windows | [下载 ZIP](https://github.com/Jingangster/personal-ai-os/archive/refs/heads/main.zip) → 解压 → 双击 `install.bat` → 选编号 → 完成。**没装 Obsidian 会自动静默装好** | 2–5 分钟 |
 | **② AI 带装** | 已在用 AI | 把 [工作模式提示词](prompts/00-工作模式.md) 全文粘贴给任意 AI，它带你装完 | 2–10 分钟 |
 | **③ 手动** | Mac / Linux | 下载 ZIP 解压，把 `vault/` 三个文件夹拖进 Obsidian 库；或终端跑 `bash install.sh` | ~5 分钟 |
+
+> 国内直连 GitHub 打不开？在下载链接前面加 `https://ghfast.top/`（即 `https://ghfast.top/https://github.com/Jingangster/personal-ai-os/archive/refs/heads/main.zip`）；仍失败就换前缀 `https://gh-proxy.com/` 或 `https://ghproxy.net/`。
 
 > 完全没接触过 Obsidian 或 AI？先看 **[小白指南](docs/小白指南.md)**——从装软件开始教，不写代码，30 分钟跑通。
 

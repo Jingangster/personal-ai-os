@@ -9,36 +9,76 @@ param(
   [string]$NewVaultPath = "",
   [switch]$NewVault,
   [switch]$NoOpen,
-  [string]$RepoZip = "https://github.com/Jingangster/personal-ai-os/archive/refs/heads/main.zip"
+  [string]$RepoZip = "https://github.com/Jingangster/personal-ai-os/archive/refs/heads/main.zip",
+  [string]$ObsidianExeUrl = "https://github.com/obsidianmd/obsidian-releases/releases/download/v1.15.1/Obsidian-1.15.1.exe"
 )
 $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $Root = $PSScriptRoot
 $VaultSrc = Join-Path $Root "vault"
+$PromptsSrc = Join-Path $Root "prompts"
 
 function Write-Step($m) { Write-Host "`n==> $m" -ForegroundColor Cyan }
 function Write-Ok($m)   { Write-Host "  [OK] $m" -ForegroundColor Green }
 function Write-Warn2($m){ Write-Host "  [!] $m" -ForegroundColor Yellow }
 
-# ---------- 1. 模板来源：本地优先，否则下载（多源容错，适配国内网络） ----------
-if (-not (Test-Path (Join-Path $VaultSrc "00 首页"))) {
-  Write-Step "本地没有模板，开始下载（自动尝试多个下载源）"
-  $tmpZip = Join-Path $env:TEMP ("paios-" + [guid]::NewGuid().ToString("N") + ".zip")
+# 通用多镜像下载（直连 → 国内加速镜像依次尝试）
+function Invoke-Download($url, $out, $minSize) {
   $mirrors = @(
-    $RepoZip,
-    ("https://ghfast.top/" + $RepoZip),
-    ("https://gh-proxy.com/" + $RepoZip),
-    ("https://ghproxy.net/" + $RepoZip)
+    $url,
+    ("https://ghfast.top/" + $url),
+    ("https://gh-proxy.com/" + $url),
+    ("https://ghproxy.net/" + $url)
   )
-  $done = $false
   foreach ($m in $mirrors) {
     try {
       Write-Host "  尝试: $m"
-      Invoke-WebRequest -Uri $m -OutFile $tmpZip -UseBasicParsing -TimeoutSec 60
-      if ((Get-Item $tmpZip).Length -gt 10000) { $done = $true; break }
+      Invoke-WebRequest -Uri $m -OutFile $out -UseBasicParsing -TimeoutSec 120
+      if ((Get-Item $out).Length -gt $minSize) { return $true }
     } catch { Write-Warn2 ("失败: " + $_.Exception.Message) }
   }
-  if (-not $done) {
+  return $false
+}
+
+# ---------- 0. Obsidian 本体：没装就自动静默安装 ----------
+$obsidianExe = Join-Path $env:LOCALAPPDATA "Obsidian\Obsidian.exe"
+if (-not (Test-Path $obsidianExe)) {
+  foreach ($root_ in @("HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall",
+                       "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall",
+                       "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall")) {
+    try {
+      Get-ItemProperty (Join-Path $root_ "*") -ErrorAction SilentlyContinue |
+        Where-Object { $_.DisplayName -like "Obsidian*" -and $_.InstallLocation } |
+        ForEach-Object {
+          $cand = Join-Path $_.InstallLocation "Obsidian.exe"
+          if (Test-Path $cand) { $obsidianExe = $cand }
+        }
+    } catch { }
+    if (Test-Path $obsidianExe) { break }
+  }
+}
+if (Test-Path $obsidianExe) {
+  Write-Ok ("已检测到 Obsidian: " + $obsidianExe)
+} else {
+  Write-Step "没检测到 Obsidian，自动下载官方安装包并静默安装（约 1–2 分钟，取决于网速）"
+  $dl = Join-Path $env:TEMP "Obsidian-setup.exe"
+  if (Invoke-Download $ObsidianExeUrl $dl 50000000) {
+    Write-Ok "安装包下载完成，开始静默安装"
+    try { Start-Process $dl "/S" -Wait } catch { Write-Warn2 ("安装启动失败: " + $_.Exception.Message) }
+    $deadline = (Get-Date).AddSeconds(120)
+    while (-not (Test-Path $obsidianExe) -and (Get-Date) -lt $deadline) { Start-Sleep 5 }
+    if (Test-Path $obsidianExe) { Write-Ok "Obsidian 安装完成" }
+    else { Write-Warn2 "自动安装未完成。不影响本系统：模板已装好；请稍后去 obsidian.md 手动安装 Obsidian。" }
+  } else {
+    Write-Warn2 "下载失败。不影响本系统：模板已装好；请稍后去 obsidian.md 手动安装 Obsidian。"
+  }
+}
+
+# ---------- 1. 模板来源：本地优先，否则下载（多镜像容错） ----------
+if (-not (Test-Path (Join-Path $VaultSrc "00 首页"))) {
+  Write-Step "本地没有模板，开始下载（自动尝试多个下载源）"
+  $tmpZip = Join-Path $env:TEMP ("paios-" + [guid]::NewGuid().ToString("N") + ".zip")
+  if (-not (Invoke-Download $RepoZip $tmpZip 10000)) {
     Write-Host "全部下载源失败。请手动下载 ZIP 并解压，然后双击解压出来的 install.bat（离线安装）。" -ForegroundColor Red
     exit 1
   }
@@ -46,6 +86,7 @@ if (-not (Test-Path (Join-Path $VaultSrc "00 首页"))) {
   Expand-Archive -Path $tmpZip -DestinationPath $tmpDir -Force
   $inner = Get-ChildItem $tmpDir | Where-Object { $_.PSIsContainer } | Select-Object -First 1
   $VaultSrc = Join-Path $inner.FullName "vault"
+  $PromptsSrc = Join-Path $inner.FullName "prompts"
   if (-not (Test-Path $VaultSrc)) { Write-Host "ZIP 内容异常（没找到 vault 文件夹）" -ForegroundColor Red; exit 1 }
   Write-Ok "下载并解压完成"
 } else {
@@ -103,21 +144,27 @@ if (-not $VaultPath) {
 
 New-Item -ItemType Directory -Force -Path $VaultPath | Out-Null
 
-# ---------- 3. 复制模板（文件名都带 -模板，不会覆盖你已有的笔记） ----------
+# ---------- 3. 复制模板 + AI 提示词（文件名都带 -模板，不会覆盖你已有的笔记） ----------
 Write-Step ("复制模板到 " + $VaultPath)
 Copy-Item (Join-Path $VaultSrc "*") $VaultPath -Recurse -Force
 Write-Ok "00 首页 / 30 个人 / 90 AI 已就位"
+if (Test-Path $PromptsSrc) {
+  Copy-Item $PromptsSrc (Join-Path $VaultPath "prompts") -Recurse -Force
+  Write-Ok "prompts（AI 提示词）也放进了库里"
+}
 
 # ---------- 4. 下一步 ----------
 Write-Host ""
 Write-Host "================ 安装完成 ================" -ForegroundColor Green
-Write-Host " 下一步（三选一）："
-Write-Host "  A. 把 prompts/00-工作模式.md 全文粘贴给任意 AI，让它接管（推荐）"
-Write-Host "  B. 把 prompts/01-启动会话.md + 协议全文粘贴给 AI"
-Write-Host "  C. 先自己看看 docs/小白指南.md"
+Write-Host " 下一步（只剩一件事）："
+Write-Host "  打开 Obsidian 里的 prompts/00-工作模式.md，"
+Write-Host "  全文复制，粘贴给任意 AI（豆包/DeepSeek 都行），发送。"
+Write-Host "  它会接管剩下的一切。"
 Write-Host "=========================================="
 
 if (-not $NoOpen) {
   $name = Split-Path $VaultPath -Leaf
   try { Start-Process ("obsidian://open?vault=" + [uri]::EscapeDataString($name)) } catch { }
+  $promptFile = Join-Path $VaultPath "prompts\00-工作模式.md"
+  if (Test-Path $promptFile) { Start-Process notepad.exe $promptFile }
 }
