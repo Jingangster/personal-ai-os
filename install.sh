@@ -42,9 +42,9 @@ mkdir -p "$VP"
 
 # ---------- 3. 复制 ----------
 cp -R "$SRC/." "$VP/"
-if [ -f "$ROOT/新手必做.md" ]; then
-  cp "$ROOT/新手必做.md" "$VP/"
-  echo "  [OK] 新手必做.md 已放进库里"
+if [ -f "$ROOT/用户必读.md" ]; then
+  cp "$ROOT/用户必读.md" "$VP/"
+  echo "  [OK] 用户必读.md 已放进库里"
 fi
 echo "  [OK] 模板已复制到: $VP"
 
@@ -57,14 +57,14 @@ fi
 echo "================ 安装完成 ================"
 if [ "$CLIP" = "yes" ]; then
   echo " 提示词已放进剪贴板。"
-  echo " 下一步：打开自动弹出的 AI 网页，Cmd+V 粘贴，发送。完事。"
+  echo " 下一步：打开自动弹出的豆包网页登录后，Cmd+V 粘贴，发送。完事。"
 else
   echo " 下一步：打开 $PROMPT_FILE 全文复制，发给任意 AI。"
 fi
 echo "=========================================="
 if command -v open >/dev/null 2>&1; then
   open "$VP" 2>/dev/null || true
-  open "https://chat.deepseek.com" 2>/dev/null || true
+  open "https://www.doubao.com/download/desktop" 2>/dev/null || true
 elif command -v xdg-open >/dev/null 2>&1; then
-  xdg-open "https://chat.deepseek.com" 2>/dev/null || true
+  xdg-open "https://www.doubao.com/download/desktop" 2>/dev/null || true
 fi

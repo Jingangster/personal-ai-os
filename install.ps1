@@ -74,6 +74,50 @@ if (Test-Path $obsidianExe) {
   }
 }
 
+# ---------- 0.5 豆包桌面版：没装就用 winget 自动安装 ----------
+function Find-DoubaoExe {
+  $found = $null
+  foreach ($root_ in @("HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall",
+                       "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall",
+                       "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall")) {
+    try {
+      $items = Get-ItemProperty (Join-Path $root_ "*") -ErrorAction SilentlyContinue |
+        Where-Object { $_.DisplayName -match "^(豆包|Doubao)" }
+      foreach ($it in $items) {
+        if ($it.DisplayIcon) {
+          $ic = ($it.DisplayIcon -split ",")[0].Trim('"')
+          if (Test-Path $ic) { $found = $ic; break }
+        }
+        if ($it.InstallLocation) {
+          foreach ($n in @("Doubao.exe", "豆包.exe")) {
+            $c = Join-Path $it.InstallLocation $n
+            if (Test-Path $c) { $found = $c; break }
+          }
+        }
+      }
+    } catch { }
+    if ($found) { break }
+  }
+  return $found
+}
+
+$doubaoExe = Find-DoubaoExe
+if ($doubaoExe) {
+  Write-Ok ("已检测到豆包桌面版: " + $doubaoExe)
+} elseif ($NoOpen) {
+  Write-Warn2 "测试模式：跳过豆包自动安装"
+} elseif (Get-Command winget -ErrorAction SilentlyContinue) {
+  Write-Step "没检测到豆包桌面版，用 winget（微软官方包管理器）自动安装，静默，约 1–3 分钟"
+  try {
+    winget install --id ByteDance.Doubao --silent --accept-package-agreements --accept-source-agreements --disable-interactivity 2>&1 | Out-Null
+  } catch { Write-Warn2 ("winget 安装出错: " + $_.Exception.Message) }
+  $doubaoExe = Find-DoubaoExe
+  if ($doubaoExe) { Write-Ok "豆包桌面版安装完成" }
+  else { Write-Warn2 "winget 安装未确认。可打开 https://www.doubao.com/download/desktop 手动安装（不影响模板使用）。" }
+} else {
+  Write-Warn2 "本机没有 winget。请打开 https://www.doubao.com/download/desktop 手动安装豆包桌面版。"
+}
+
 # ---------- 1. 模板来源：本地优先，否则下载（多镜像容错） ----------
 if (-not (Test-Path (Join-Path $VaultSrc "00 首页"))) {
   Write-Step "本地没有模板，开始下载（自动尝试多个下载源）"
@@ -152,10 +196,10 @@ if (Test-Path $PromptsSrc) {
   Copy-Item $PromptsSrc (Join-Path $VaultPath "prompts") -Recurse -Force
   Write-Ok "prompts（AI 提示词）也放进了库里"
 }
-$guideFile = Join-Path $Root "新手必做.md"
+$guideFile = Join-Path $Root "用户必读.md"
 if (Test-Path $guideFile) {
   Copy-Item $guideFile $VaultPath -Force
-  Write-Ok "新手必做.md 已放进库里"
+  Write-Ok "用户必读.md 已放进库里"
 }
 
 # ---------- 4. 下一步：剪贴板就绪 + 自动打开 ----------
@@ -169,8 +213,8 @@ Write-Host ""
 Write-Host "================ 安装完成 ================" -ForegroundColor Green
 if ($clipOK) {
   Write-Host " 工作模式提示词已放进你的剪贴板。" -ForegroundColor Green
-  Write-Host " 下一步：在自动打开的 AI 网页里按 Ctrl+V，发送。完事。"
-  Write-Host " （没有 AI 账号？DeepSeek / Kimi / 豆包 / ChatGPT 任选一个注册即可）"
+  Write-Host " 下一步：在自动打开的豆包里按 Ctrl+V，发送。完事。"
+  Write-Host " （首次使用豆包需登录：手机号或抖音账号均可）"
 } else {
   Write-Host " 下一步：打开 prompts/00-工作模式.md，全文复制，"
   Write-Host " 粘贴给任意 AI（豆包/DeepSeek 都行），发送。"
@@ -180,6 +224,10 @@ Write-Host "=========================================="
 if (-not $NoOpen) {
   $name = Split-Path $VaultPath -Leaf
   try { Start-Process ("obsidian://open?vault=" + [uri]::EscapeDataString($name)) } catch { }
-  try { Start-Process "https://chat.deepseek.com" } catch { }
+  if ($doubaoExe) {
+    try { Start-Process $doubaoExe } catch { }
+  } else {
+    try { Start-Process "https://www.doubao.com/download/desktop" } catch { }
+  }
   if (-not $clipOK -and (Test-Path $promptFile)) { Start-Process notepad.exe $promptFile }
 }

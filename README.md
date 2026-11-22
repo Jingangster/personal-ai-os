@@ -25,7 +25,7 @@
 
 | 方式 | 适合谁 | 步骤 | 用时 |
 | --- | --- | --- | --- |
-| **① 一键安装（推荐）** | Windows | [下载 ZIP](https://github.com/Jingangster/personal-ai-os/archive/refs/heads/main.zip) → 解压 → 双击 `install.bat` → 选编号 → 完成。**没装 Obsidian 会自动静默装好** | 2–5 分钟 |
+| **① 一键安装（推荐）** | Windows | [下载 ZIP](https://github.com/Jingangster/personal-ai-os/archive/refs/heads/main.zip) → 解压 → 双击 `install.bat` → 选编号 → 完成。**没装 Obsidian / 豆包都会自动静默装好** | 2–5 分钟 |
 | **② AI 带装** | 已在用 AI | 把 [工作模式提示词](prompts/00-工作模式.md) 全文粘贴给任意 AI，它带你装完 | 2–10 分钟 |
 | **③ 手动** | Mac / Linux | 下载 ZIP 解压，把 `vault/` 三个文件夹拖进 Obsidian 库；或终端跑 `bash install.sh` | ~5 分钟 |
 
@@ -48,7 +48,7 @@
 
 ```
 personal-ai-os/
-├── 新手必做.md                  ← 一句话：双击安装，装完 Ctrl+V 发送
+├── 用户必读.md                  ← 一句话：双击安装，豆包自动就位，Ctrl+V 发送
 ├── install.bat / install.ps1    Windows 一键安装（解压后双击）
 ├── install.sh                   macOS / Linux：bash install.sh
 ├── vault/                      ← 复制进你的 Obsidian 库
